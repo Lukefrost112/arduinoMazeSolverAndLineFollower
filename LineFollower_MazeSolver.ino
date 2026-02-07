@@ -8,6 +8,19 @@ struct SensorReadings {
   int values[8];
 };
 
+enum State { NORMAL, LOST, JUNCTION, MARKER };
+
+const char* stateName(State s) {
+  switch (s) {
+    case NORMAL:   return "NORMAL";
+    case LOST:     return "LOST";
+    case JUNCTION: return "JUNCTION";
+    case MARKER:   return "MARKER";
+    default:       return "UNKNOWN";
+  }
+
+}
+
 void fakeSensorReading(SensorReadings &s, int testcase) {
   switch (testcase) {
     case 0:
@@ -62,6 +75,42 @@ void fakeSensorReading(SensorReadings &s, int testcase) {
   }
 }
 
+int classify(const SensorReadings &s) {
+  byte numBlackSensors = 0;
+  byte leftSensors= 0;
+  byte centerSensors= 0;
+  byte rightSensors= 0;
+
+  bool L = false;
+  bool C = false;
+  bool R = false;
+
+  bool edgeL = 0;
+  bool edgeR = 0;
+
+  for (int i = 0; i < numSensors; i++) {
+    if (s.values[i] > 500){
+      numBlackSensors++;
+    }
+
+    if(i <= 2 && s.values[i] > 500) {
+      leftSensors++;
+    }
+
+    if(i >= 3 && i <= 4 && s.values[i] > 500) {
+      centerSensors++;
+    }
+
+    if(i >= 5 && i <= 7 && s.values[i] > 500) {
+      rightSensors++;
+    }
+  }
+
+  L = leftSensors > 0;
+  C = centerSensors > 0;
+  R = rightSensors > 0;
+}
+
 SensorReadings sensors;
 
 void setup() {
@@ -70,17 +119,6 @@ void setup() {
 }
 
 void loop() {
-  for(int i = 0; i < 4; i++) {
-    fakeSensorReading(sensors, i);
-    for (int j = 0; j < numSensors; j++) {
-      if (j == 7) {
-        Serial.println(sensors.values[j]);
-      } else {
-        Serial.print(sensors.values[j]);
-        Serial.print(" ");
-      }
-      delay(100);
-    }
-    delay(2000);
-  }
+  Serial.println();
+  delay(500);
 }
